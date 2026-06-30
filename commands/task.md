@@ -37,7 +37,7 @@ STATUS.md logic at `specs/features/<slug>/STATUS.md`:
 - If in_progress and hash matches → resume from first `[ ]` step.
 - Else → bootstrap from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`:
   - slug, command=task, overall_status=in_progress, last_updated=now, input_hash
-  - Steps: 1. Pre-fetch + route / 2. Build / 3. Review / 4. Finalize
+  - Steps: 1. Pre-fetch + route / 2. Build / 3. Verify / 4. Review / 5. Finalize
 
 Emit routing block:
 ```
@@ -80,7 +80,28 @@ If delegation fails, implement inline using Edit/Write/Bash with the same commit
 
 Receive `changed_files[]` and `commits[]`. Mark Step 2 `[x]` in STATUS.md.
 
-## Step 3 — Review (advisory)
+## Step 3 — Verify
+
+Read `specs/features/<slug>/SPEC.md` and extract the `## Validation` section (everything between `## Validation` and the next `##` heading).
+
+If the section is missing or contains no fenced shell code blocks: `verify = {status: skipped, commands: [], total: 0}`. Skip to marking Step 3 `[x]`.
+
+Otherwise, extract each fenced shell command — one command per line inside the fenced block — in declared order. For each command, in order:
+- Run it via Bash in the repo root.
+- Capture the exit code.
+- On exit 0: record `{cmd, exit: 0}` (no tail).
+- On non-zero exit: record `{cmd, exit, tail: <last ~15 lines of combined output>}`, then stop running further commands.
+
+Compute `verify.status`:
+- `pass` if every command ran and exited 0.
+- `fail` if any command exited non-zero.
+- `skipped` if there were no commands to run.
+
+`verify = {status, commands: [...], total: N}` where `N` is the number of commands declared.
+
+Mark Step 3 `[x]` in STATUS.md.
+
+## Step 4 — Review (advisory)
 
 Call Agent with subagent_type `claudinho-reviewer`. Prompt (≤ 1500 chars):
 
@@ -94,11 +115,21 @@ Review the implementation against SPEC acceptance criteria. Return structured fi
 
 If reviewer delegation fails: log "reviewer unavailable" in STATUS notes and continue.
 
-Receive `findings[]`. Mark Step 3 `[x]` in STATUS.md.
+Receive `findings[]`. Mark Step 4 `[x]` in STATUS.md.
 
-## Step 4 — Finalize
+## Step 5 — Finalize
 
-Update `specs/features/<slug>/SPEC.md` frontmatter: set `status: done`.
+If `verify.status` is `pass` or `skipped`: update `specs/features/<slug>/SPEC.md` frontmatter, set `status: done`. Set `overall_status: done` in STATUS.md.
+
+If `verify.status` is `fail`: leave SPEC `status` unchanged. Set `overall_status: blocked` in STATUS.md. Append failure detail to STATUS notes:
+```
+## Verify failure (<date>)
+status: fail
+failing command: <cmd>
+exit: <exit>
+tail:
+<tail>
+```
 
 Append to STATUS.md notes:
 ```
@@ -106,17 +137,31 @@ Append to STATUS.md notes:
 <findings from reviewer, or "none">
 ```
 
-Mark Step 4 `[x]`. Set `overall_status: done`. Update `last_updated`.
+Mark Step 5 `[x]`. Update `last_updated`.
 
-Print final report:
+Print final report. On `verify.status` pass or skipped:
 ```
 ✅ task complete
    slug:     <slug>
    commits:  <count> — <list of hash + message>
    files:    <changed_files list>
+   verify:   <verify.status> (<total> command(s))
    findings: <risk: N  warn: N  info: N>
 
 Review notes: specs/features/<slug>/STATUS.md
+```
+
+On `verify.status` fail:
+```
+⚠️ task blocked — verify failed
+   slug:     <slug>
+   commits:  <count> — <list of hash + message>
+   files:    <changed_files list>
+   verify:   fail — <failing cmd> (exit <exit>)
+   tail:     <tail>
+   findings: <risk: N  warn: N  info: N>
+
+SPEC status left unchanged. See specs/features/<slug>/STATUS.md
 ```
 
 ## Rules

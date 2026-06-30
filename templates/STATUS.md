@@ -7,10 +7,11 @@ input_hash: <sha256>
 ---
 
 ## Steps
-- [ ] 1. <step>
-- [ ] 2. <step>
-- [ ] 3. <step>
-- [ ] 4. <step>
+- [ ] 1. Pre-fetch + route
+- [ ] 2. Build
+- [ ] 3. Verify
+- [ ] 4. Review
+- [ ] 5. Finalize
 
 ## Notes
 Router inference, reviewer findings, decisions go here.
