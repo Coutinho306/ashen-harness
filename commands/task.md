@@ -149,7 +149,8 @@ tail:
 Append to STATUS.md notes:
 ```
 ## Review findings (<date>)
-<findings from reviewer, or "none">
+<if review.status == skipped: "review: skipped (trivial, <review.files> file(s), <review.lines> lines)">
+<else: findings from reviewer, or "none">
 ```
 
 Mark Step 5 `[x]`. Update `last_updated`.
@@ -161,7 +162,7 @@ Print final report. On `verify.status` pass or skipped:
    commits:  <count> — <list of hash + message>
    files:    <changed_files list>
    verify:   <verify.status> (<total> command(s))
-   findings: <risk: N  warn: N  info: N>
+   findings: <if review.status == skipped: "skipped (trivial)"; else: "risk: N  warn: N  info: N">
 
 Review notes: specs/features/<slug>/STATUS.md
 ```
@@ -174,7 +175,7 @@ On `verify.status` fail:
    files:    <changed_files list>
    verify:   fail — <failing cmd> (exit <exit>)
    tail:     <tail>
-   findings: <risk: N  warn: N  info: N>
+   findings: <if review.status == skipped: "skipped (trivial)"; else: "risk: N  warn: N  info: N">
 
 SPEC status left unchanged. See specs/features/<slug>/STATUS.md
 ```
@@ -184,4 +185,5 @@ SPEC status left unchanged. See specs/features/<slug>/STATUS.md
 - No `Co-Authored-By`, no AI trailers.
 - Resume from first `[ ]` step when STATUS exists and hash matches.
 - Reviewer findings are notes only — never halt or revert on findings alone.
+- `tier` gates only Step 4 (Review). Verify (Step 3) and Finalize (Step 5) always run unconditionally.
 - If SPEC `status` is already `done`, ask user to confirm re-run before proceeding.
