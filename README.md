@@ -9,7 +9,7 @@ Personal Claude Code slash commands for a domain-routed builder pipeline:
 |---|---|
 | `/spike <topic>` | Delegates to `claudinho-spike-researcher`; outputs `specs/spikes/<slug>/SPIKE.md` |
 | `/plan <slug>` | Delegates to `claudinho-specifier` then `claudinho-planner`; outputs `SPEC.md` + `PLAN.md` |
-| `/task <slug>` | Routes to domain builder (`data-eng`, `ai-eng`, `infra-ops`, `generalist`) then advisory reviewer |
+| `/task <slug>` | Routes to domain builder (`data-eng`, `ai-eng`, `infra-ops`, `generalist`), runs a post-build verify gate against SPEC's `## Validation` commands, then advisory reviewer |
 
 ## Requirements
 
