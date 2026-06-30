@@ -35,7 +35,7 @@ Compute `input_hash = sha256(spec_body + plan_body)` (first 8 chars).
 STATUS.md logic at `specs/features/<slug>/STATUS.md`:
 - If done → report "already done" + commits list and stop.
 - If in_progress and hash matches → resume from first `[ ]` step.
-- Else → bootstrap from template at `/root/.claude/claudinho-templates/STATUS.md`:
+- Else → bootstrap from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`:
   - slug, command=task, overall_status=in_progress, last_updated=now, input_hash
   - Steps: 1. Pre-fetch + route / 2. Build / 3. Review / 4. Finalize
 

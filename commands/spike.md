@@ -18,7 +18,7 @@ Resolve slug: if arg is already kebab-case with no spaces, use as-is; else conve
 Probe `specs/spikes/<slug>/STATUS.md`:
 - If exists: read it. If `overall_status: done`, report "already done" + SPIKE.md path and stop.
 - If exists and `overall_status: in_progress` and `input_hash` matches: resume from first unchecked step.
-- Else: bootstrap STATUS.md from template at `/root/.claude/claudinho-templates/STATUS.md`, filling:
+- Else: bootstrap STATUS.md from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`, filling:
   - `slug`: resolved slug
   - `command`: spike
   - `overall_status`: in_progress

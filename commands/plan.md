@@ -26,7 +26,7 @@ Compute `input_hash = sha256(topic + spike_content)` (first 8 chars for display)
 STATUS.md logic:
 - If STATUS exists and `overall_status: done` → report "already done" + paths and stop.
 - If STATUS exists and `overall_status: in_progress` and hash matches → resume from first unchecked step.
-- Else → bootstrap `specs/features/<slug>/STATUS.md` from template at `/root/.claude/claudinho-templates/STATUS.md`:
+- Else → bootstrap `specs/features/<slug>/STATUS.md` from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`:
   - `slug`: resolved slug
   - `command`: plan
   - `overall_status`: in_progress

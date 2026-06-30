@@ -12,7 +12,7 @@ You will be given: `topic`, `domain` (data-eng | ai-eng | infra-ops | generalist
 **Steps:**
 1. Probe cwd_hints with `ls` and `grep` to understand existing project context.
 2. WebSearch/WebFetch for current best practices if needed.
-3. Write SPIKE.md at target_path using the template at `/root/.claude/claudinho-templates/SPIKE.md`.
+3. Write SPIKE.md at target_path using the template at `${CLAUDE_PLUGIN_ROOT}/templates/SPIKE.md`.
 
 **Domain checklists to address:**
 - data-eng → idempotency, schema evolution, late-arriving data, cost

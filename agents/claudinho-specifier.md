@@ -13,7 +13,7 @@ You will be given: `slug`, `target_path` (where to write SPEC.md), optional `spi
 1. If spike_path provided, Read it for context.
 2. Probe cwd_hints to understand existing architecture.
 3. If `domain` cannot be inferred with confidence, use AskUserQuestion to ask.
-4. Write SPEC.md at target_path using the template at `/root/.claude/claudinho-templates/SPEC.md`.
+4. Write SPEC.md at target_path using the template at `${CLAUDE_PLUGIN_ROOT}/templates/SPEC.md`.
 
 **Frontmatter rules:**
 - `kind`: feature | bugfix | refactor | research | automation

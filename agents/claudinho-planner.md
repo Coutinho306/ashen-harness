@@ -13,7 +13,7 @@ You will be given: `spec_path` (Read this first), `target_path` (where to write 
 1. Read spec_path fully.
 2. Probe cwd_hints to understand existing code structure.
 3. Decompose Tasks from SPEC.md into phases. Each phase must be independently verifiable.
-4. Write PLAN.md at target_path using the template at `/root/.claude/claudinho-templates/PLAN.md`.
+4. Write PLAN.md at target_path using the template at `${CLAUDE_PLUGIN_ROOT}/templates/PLAN.md`.
 
 **Phase rules:**
 - Each phase: named, has validation criteria, has task list with IDs (T1.1, T1.2, T2.1, ...).
