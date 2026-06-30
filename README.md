@@ -1,7 +1,37 @@
 # ashen-harness
 
-Personal Claude Code slash commands for a domain-routed builder pipeline:
-`/spike`, `/plan`, `/task` — each routing work through specialist subagents with an advisory reviewer.
+A personal Claude Code plugin demonstrating domain-routed agent workflows for structured engineering: from research spike to validated build, through specialist subagents.
+
+## Why this exists
+
+Modern engineering workflows benefit from structure: research before plan, plan before build, validation gate before review. This plugin formalizes that flow with specialist subagents per domain (data-eng, ai-eng, infra-ops, generalist), each with focused prompt and clear scope.
+
+The result: less drift between intent and output, clearer artifacts (SPIKE.md, SPEC.md, PLAN.md) at each stage, and a pluggable model where new domains add a builder without changing the routing layer.
+
+## Architecture
+
+```
+/spike <topic>
+   │
+   └─→ ashen-spike-researcher
+           │
+           └─→ specs/spikes/<slug>/SPIKE.md
+
+/plan <slug>
+   │
+   ├─→ ashen-specifier ────→ SPEC.md
+   └─→ ashen-planner ─────→ PLAN.md
+
+/task <slug>
+   │
+   ├─→ domain-router (data-eng | ai-eng | infra-ops | generalist)
+   │      │
+   │      └─→ specialist-builder
+   │
+   ├─→ verify gate (against SPEC ## Validation)
+   │
+   └─→ ashen-reviewer (advisory, never blocks)
+```
 
 ## Commands
 
