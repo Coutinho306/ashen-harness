@@ -1,5 +1,5 @@
 ---
-name: claudinho-reviewer
+name: ashen-reviewer
 description: Advisory code reviewer. Reads a SPEC.md and git diff, returns structured findings grouped by severity. NEVER writes files or commits. NEVER blocks — always returns. Use for /task review phase after builders complete.
 tools: Read, Grep, Bash
 model: claude-sonnet-4-6

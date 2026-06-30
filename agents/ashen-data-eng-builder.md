@@ -1,5 +1,5 @@
 ---
-name: claudinho-data-eng-builder
+name: ashen-data-eng-builder
 description: Implement data engineering tasks (dbt, Spark, Airflow, DuckDB, Polars, SQL pipelines). Reads SPEC.md and PLAN.md, implements tasks, commits per coherent change. Use for /task command on domain=data-eng specs.
 tools: Read, Grep, Edit, Write, Bash, AskUserQuestion
 model: claude-sonnet-4-6

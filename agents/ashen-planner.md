@@ -1,5 +1,5 @@
 ---
-name: claudinho-planner
+name: ashen-planner
 description: Read a SPEC.md and produce a phased PLAN.md with dependency-ordered task IDs and validation criteria per phase. Use for /plan command planner phase.
 tools: Read, Grep, Bash, Write
 model: claude-opus-4-8

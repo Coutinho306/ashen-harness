@@ -1,5 +1,5 @@
 ---
-name: claudinho-ai-eng-builder
+name: ashen-ai-eng-builder
 description: Implement LLM/AI engineering tasks (LangGraph, LangChain, RAG, prompt harness, evals). Reads SPEC.md and PLAN.md, implements tasks, commits per coherent change. Use for /task command on domain=ai-eng specs.
 tools: Read, Grep, Edit, Write, Bash, AskUserQuestion, WebFetch
 model: claude-sonnet-4-6

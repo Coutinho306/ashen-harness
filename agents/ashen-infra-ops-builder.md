@@ -1,5 +1,5 @@
 ---
-name: claudinho-infra-ops-builder
+name: ashen-infra-ops-builder
 description: Implement infrastructure and ops tasks (Terraform/OpenTofu, CI workflows, Dockerfiles, k8s manifests, bash/python automation). NEVER applies destructive changes without confirmation. Use for /task command on domain=infra-ops specs.
 tools: Read, Grep, Edit, Write, Bash, AskUserQuestion
 model: claude-sonnet-4-6

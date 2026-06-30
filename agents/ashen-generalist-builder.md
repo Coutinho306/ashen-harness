@@ -1,5 +1,5 @@
 ---
-name: claudinho-generalist-builder
+name: ashen-generalist-builder
 description: Fallback builder for tasks that don't fit data-eng, ai-eng, or infra-ops specialists (docs, scripts, configs, misc refactors, tooling). Reads SPEC.md and PLAN.md, implements tasks, commits per coherent change. Use for /task command on domain=generalist specs.
 tools: Read, Grep, Edit, Write, Bash, AskUserQuestion
 model: claude-sonnet-4-6

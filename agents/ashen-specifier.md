@@ -1,5 +1,5 @@
 ---
-name: claudinho-specifier
+name: ashen-specifier
 description: Author a SPEC.md with full frontmatter and structured sections from a topic or SPIKE.md. Asks user clarifying questions when domain or intent is unclear. Use for /plan command specifier phase.
 tools: Read, Grep, Bash, Write, AskUserQuestion
 model: claude-opus-4-8

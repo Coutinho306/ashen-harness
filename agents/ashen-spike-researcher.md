@@ -1,5 +1,5 @@
 ---
-name: claudinho-spike-researcher
+name: ashen-spike-researcher
 description: Research a technical topic and produce a SPIKE.md with problem framing, 2-3 candidate approaches with tradeoffs, a recommendation, references, and open questions. Use for /spike command research phase.
 tools: Read, Grep, Bash, WebSearch, WebFetch, Write
 model: claude-opus-4-8
