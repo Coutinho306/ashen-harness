@@ -1,4 +1,4 @@
-# claudinho-harness
+# ashen-harness
 
 Personal Claude Code slash commands for a domain-routed builder pipeline:
 `/spike`, `/plan`, `/task` — each routing work through specialist subagents with an advisory reviewer.
@@ -7,8 +7,8 @@ Personal Claude Code slash commands for a domain-routed builder pipeline:
 
 | Command | What it does |
 |---|---|
-| `/spike <topic>` | Delegates to `claudinho-spike-researcher`; outputs `specs/spikes/<slug>/SPIKE.md` |
-| `/plan <slug>` | Delegates to `claudinho-specifier` then `claudinho-planner`; outputs `SPEC.md` + `PLAN.md` |
+| `/spike <topic>` | Delegates to `ashen-spike-researcher`; outputs `specs/spikes/<slug>/SPIKE.md` |
+| `/plan <slug>` | Delegates to `ashen-specifier` then `ashen-planner`; outputs `SPEC.md` + `PLAN.md` |
 | `/task <slug>` | Routes to domain builder (`data-eng`, `ai-eng`, `infra-ops`, `generalist`), runs a post-build verify gate against SPEC's `## Validation` commands, then advisory reviewer |
 
 ## Requirements
@@ -21,13 +21,13 @@ Personal Claude Code slash commands for a domain-routed builder pipeline:
 ### 1. Register the marketplace
 
 ```
-claude plugin marketplace add Coutinho306/claudinho-harness
+claude plugin marketplace add Coutinho306/ashen-harness
 ```
 
 ### 2. Install the plugin
 
 ```
-claude plugin install claudinho-harness@claudinho-harness --scope local
+claude plugin install ashen-harness@ashen-harness --scope local
 ```
 
 ### 3. Reload
@@ -38,10 +38,10 @@ Run `/reload-plugins` inside a Claude Code session, then verify with `/spike`, `
 
 ```
 # Register the local repo as a marketplace source
-claude plugin marketplace add /absolute/path/to/claudinho-harness
+claude plugin marketplace add /absolute/path/to/ashen-harness
 
 # Install from the local marketplace
-claude plugin install claudinho-harness@claudinho-harness --scope local
+claude plugin install ashen-harness@ashen-harness --scope local
 
 # After editing any file in commands/ or agents/:
 # In Claude Code: /reload-plugins
@@ -49,10 +49,10 @@ claude plugin install claudinho-harness@claudinho-harness --scope local
 
 No restart required — `/reload-plugins` picks up changes immediately.
 
-## Bare-name aliases (`/spike` instead of `/claudinho-harness:spike`)
+## Bare-name aliases (`/spike` instead of `/ashen-harness:spike`)
 
-Marketplace-installed plugin commands are invoked with a `claudinho-harness:` prefix
-(e.g. `/claudinho-harness:spike`). If you want plain `/spike`, `/plan`, `/task` back,
+Marketplace-installed plugin commands are invoked with a `ashen-harness:` prefix
+(e.g. `/ashen-harness:spike`). If you want plain `/spike`, `/plan`, `/task` back,
 Claude Code doesn't let a plugin register a bare top-level command name — only
 **personal** commands (`~/.claude/commands/`) are exempt from prefixing. So the fix
 is a one-time local alias install, not something the plugin can do for you automatically.
@@ -68,11 +68,11 @@ Each file is a thin redirect, e.g. `aliases/spike.md`:
 
 ```
 ---
-description: "Alias for claudinho-harness:spike"
+description: "Alias for ashen-harness:spike"
 argument-hint: "<topic | slug>"
 ---
 
-/claudinho-harness:spike $ARGUMENTS
+/ashen-harness:spike $ARGUMENTS
 ```
 
 After copying, `/reload-plugins` (or restart) and `/spike` works as a bare command.
@@ -82,18 +82,18 @@ not an extra model call or round-trip.
 
 **Caveat:** if you ever install a *different* plugin that also defines `/spike`,
 `/plan`, or `/task`, your personal alias wins silently (personal commands take
-priority) and will always point at claudinho-harness's version regardless of
+priority) and will always point at ashen-harness's version regardless of
 which plugin you meant.
 
 ## Agents included
 
 | Agent | Domain | Role |
 |---|---|---|
-| `claudinho-spike-researcher` | all | Research + SPIKE.md authoring |
-| `claudinho-specifier` | all | SPEC.md authoring |
-| `claudinho-planner` | all | PLAN.md authoring |
-| `claudinho-data-eng-builder` | data-eng | dbt, Spark, SQL pipelines |
-| `claudinho-ai-eng-builder` | ai-eng | LangGraph, RAG, prompt harness |
-| `claudinho-infra-ops-builder` | infra-ops | Terraform, CI, Docker |
-| `claudinho-generalist-builder` | generalist | scripts, configs, tooling |
-| `claudinho-reviewer` | all | Advisory code review (never blocks) |
+| `ashen-spike-researcher` | all | Research + SPIKE.md authoring |
+| `ashen-specifier` | all | SPEC.md authoring |
+| `ashen-planner` | all | PLAN.md authoring |
+| `ashen-data-eng-builder` | data-eng | dbt, Spark, SQL pipelines |
+| `ashen-ai-eng-builder` | ai-eng | LangGraph, RAG, prompt harness |
+| `ashen-infra-ops-builder` | infra-ops | Terraform, CI, Docker |
+| `ashen-generalist-builder` | generalist | scripts, configs, tooling |
+| `ashen-reviewer` | all | Advisory code review (never blocks) |
