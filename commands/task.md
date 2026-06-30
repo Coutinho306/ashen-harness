@@ -99,11 +99,26 @@ Compute `verify.status`:
 
 `verify = {status, commands: [...], total: N}` where `N` is the number of commands declared.
 
-Mark Step 3 `[x]` in STATUS.md.
+Mark Step 3 `[x]` in STATUS.md. Verify is unconditional — it always runs regardless of `tier` (computed below) and `tier` never gates Step 3 or Step 5 (Finalize).
+
+## Tier classifier
+
+Compute `tier ∈ {trivial, standard}` from the Step 2 build output, before running Step 4.
+
+- File count: `len(changed_files)` (from Step 2's `changed_files[]`).
+- Line count: run `git diff --shortstat HEAD~<commit_count>..HEAD` (same ref Step 4 builds for the reviewer) and parse the `N insertions(+), M deletions(-)` summary into `insertions + deletions`. If either number is absent in the output, treat it as `0`.
+- `tier = trivial` iff `len(changed_files) == 1` AND `(insertions + deletions) < 30`. Otherwise `tier = standard`.
+- If the `--shortstat` output can't be parsed (empty, no match, command error), default `tier = standard` — fail safe toward running review.
+
+The `1 file / 30 line` threshold is a hardcoded constant, not configurable — do not add a flag or config surface for it.
+
+`tier` only gates Step 4 (Review). It never affects Step 3 (Verify) or Step 5 (Finalize): a trivial change still runs every Validation command and can still produce `verify.status: fail`.
 
 ## Step 4 — Review (advisory)
 
-Call Agent with subagent_type `claudinho-reviewer`. Prompt (≤ 1500 chars):
+If `tier == trivial`: skip the `claudinho-reviewer` Agent call entirely. Set `review = {status: skipped, reason: trivial, files: <len(changed_files)>, lines: <insertions + deletions>}`. Mark Step 4 `[x]` in STATUS.md and continue to Step 5.
+
+If `tier == standard`: call Agent with subagent_type `claudinho-reviewer`. Prompt (≤ 1500 chars):
 
 ```
 Spec path: specs/features/<slug>/SPEC.md
@@ -115,7 +130,7 @@ Review the implementation against SPEC acceptance criteria. Return structured fi
 
 If reviewer delegation fails: log "reviewer unavailable" in STATUS notes and continue.
 
-Receive `findings[]`. Mark Step 4 `[x]` in STATUS.md.
+Receive `findings[]`. Set `review = {status: reviewed}`. Mark Step 4 `[x]` in STATUS.md.
 
 ## Step 5 — Finalize
 
