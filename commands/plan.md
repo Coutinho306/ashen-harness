@@ -1,8 +1,8 @@
 ---
-description: Plan a feature via claudinho-specifier + claudinho-planner; outputs SPEC.md + PLAN.md
+description: Plan a feature via ashen-specifier + ashen-planner; outputs SPEC.md + PLAN.md
 model: claude-opus-4-8
 argument-hint: "<slug | topic>"
-delegates-to: [claudinho-specifier, claudinho-planner]
+delegates-to: [ashen-specifier, ashen-planner]
 ---
 
 You are the `/plan` router. Spec and plan only — no code changes, no commits.
@@ -38,7 +38,7 @@ Create `specs/features/<slug>/` directory if absent.
 
 Mark Step 1 `[x]` in STATUS.md.
 
-## Step 2 — Delegate claudinho-specifier
+## Step 2 — Delegate ashen-specifier
 
 Emit routing block:
 ```
@@ -49,7 +49,7 @@ Emit routing block:
    hash:    <first 8 chars>
 ```
 
-Call Agent with subagent_type `claudinho-specifier`. Prompt (≤ 1500 chars):
+Call Agent with subagent_type `ashen-specifier`. Prompt (≤ 1500 chars):
 
 ```
 Slug: <slug>
@@ -84,7 +84,7 @@ AskUserQuestion:
 
 Mark Step 3 `[x]` in STATUS.md.
 
-## Step 4 — Delegate claudinho-planner
+## Step 4 — Delegate ashen-planner
 
 Emit routing block:
 ```
@@ -93,7 +93,7 @@ Emit routing block:
    target:  specs/features/<slug>/PLAN.md
 ```
 
-Call Agent with subagent_type `claudinho-planner`. Prompt (≤ 1500 chars):
+Call Agent with subagent_type `ashen-planner`. Prompt (≤ 1500 chars):
 
 ```
 Spec path: specs/features/<slug>/SPEC.md

@@ -1,8 +1,8 @@
 ---
-description: Research a topic via claudinho-spike-researcher; outputs SPIKE.md + recommendation
+description: Research a topic via ashen-spike-researcher; outputs SPIKE.md + recommendation
 model: claude-opus-4-8
 argument-hint: "<topic | slug>"
-delegates-to: [claudinho-spike-researcher]
+delegates-to: [ashen-spike-researcher]
 ---
 
 You are the `/spike` router. Investigation only — no code changes, no commits.
@@ -52,11 +52,11 @@ Emit the routing log block:
 
 Mark Step 2 `[x]` in STATUS.md.
 
-## Step 3 — Delegate claudinho-spike-researcher
+## Step 3 — Delegate ashen-spike-researcher
 
 Create `specs/spikes/<slug>/` directory if absent.
 
-Call Agent with subagent_type `claudinho-spike-researcher`. Prompt (≤ 1500 chars):
+Call Agent with subagent_type `ashen-spike-researcher`. Prompt (≤ 1500 chars):
 
 ```
 Research topic: "<topic>"

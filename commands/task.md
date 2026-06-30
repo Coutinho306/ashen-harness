@@ -2,7 +2,7 @@
 description: Execute a SPEC via domain-routed builder + advisory reviewer; commits, no PRs
 model: claude-sonnet-4-6
 argument-hint: "<slug>"
-delegates-to: [claudinho-data-eng-builder, claudinho-ai-eng-builder, claudinho-infra-ops-builder, claudinho-generalist-builder, claudinho-reviewer]
+delegates-to: [ashen-data-eng-builder, ashen-ai-eng-builder, ashen-infra-ops-builder, ashen-generalist-builder, ashen-reviewer]
 ---
 
 You are the `/task` router. Implement a spec via a domain-routed builder, then run advisory review.
@@ -25,10 +25,10 @@ Parse `domain` from SPEC frontmatter (use bash one-liner: `python3 -c "import sy
 If `domain` is empty or unset: use `AskUserQuestion` with question "Which domain does this task fall under?" and options `[data-eng, ai-eng, infra-ops, generalist]`. Then update SPEC frontmatter: replace `domain: ` line with the chosen value (use Edit tool).
 
 Route:
-- `data-eng` → `claudinho-data-eng-builder`
-- `ai-eng` → `claudinho-ai-eng-builder`
-- `infra-ops` → `claudinho-infra-ops-builder`
-- `generalist` → `claudinho-generalist-builder`
+- `data-eng` → `ashen-data-eng-builder`
+- `ai-eng` → `ashen-ai-eng-builder`
+- `infra-ops` → `ashen-infra-ops-builder`
+- `generalist` → `ashen-generalist-builder`
 
 Compute `input_hash = sha256(spec_body + plan_body)` (first 8 chars).
 
@@ -116,9 +116,9 @@ The `1 file / 30 line` threshold is a hardcoded constant, not configurable — d
 
 ## Step 4 — Review (advisory)
 
-If `tier == trivial`: skip the `claudinho-reviewer` Agent call entirely. Set `review = {status: skipped, reason: trivial, files: <len(changed_files)>, lines: <insertions + deletions>}`. Mark Step 4 `[x]` in STATUS.md and continue to Step 5.
+If `tier == trivial`: skip the `ashen-reviewer` Agent call entirely. Set `review = {status: skipped, reason: trivial, files: <len(changed_files)>, lines: <insertions + deletions>}`. Mark Step 4 `[x]` in STATUS.md and continue to Step 5.
 
-If `tier == standard`: call Agent with subagent_type `claudinho-reviewer`. Prompt (≤ 1500 chars):
+If `tier == standard`: call Agent with subagent_type `ashen-reviewer`. Prompt (≤ 1500 chars):
 
 ```
 Spec path: specs/features/<slug>/SPEC.md
