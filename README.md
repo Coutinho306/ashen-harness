@@ -49,6 +49,42 @@ claude plugin install claudinho-harness@claudinho-harness --scope local
 
 No restart required — `/reload-plugins` picks up changes immediately.
 
+## Bare-name aliases (`/spike` instead of `/claudinho-harness:spike`)
+
+Marketplace-installed plugin commands are invoked with a `claudinho-harness:` prefix
+(e.g. `/claudinho-harness:spike`). If you want plain `/spike`, `/plan`, `/task` back,
+Claude Code doesn't let a plugin register a bare top-level command name — only
+**personal** commands (`~/.claude/commands/`) are exempt from prefixing. So the fix
+is a one-time local alias install, not something the plugin can do for you automatically.
+
+Wrapper sources live in this repo under `aliases/` — copy them into your personal
+commands dir once per machine:
+
+```
+cp aliases/*.md ~/.claude/commands/
+```
+
+Each file is a thin redirect, e.g. `aliases/spike.md`:
+
+```
+---
+description: "Alias for claudinho-harness:spike"
+argument-hint: "<topic | slug>"
+---
+
+/claudinho-harness:spike $ARGUMENTS
+```
+
+After copying, `/reload-plugins` (or restart) and `/spike` works as a bare command.
+
+**Cost:** none — it's a static text expansion to the prefixed command before send,
+not an extra model call or round-trip.
+
+**Caveat:** if you ever install a *different* plugin that also defines `/spike`,
+`/plan`, or `/task`, your personal alias wins silently (personal commands take
+priority) and will always point at claudinho-harness's version regardless of
+which plugin you meant.
+
 ## Agents included
 
 | Agent | Domain | Role |
