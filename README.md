@@ -33,6 +33,18 @@ The result: less drift between intent and output, clearer artifacts (SPIKE.md, S
    └─→ ashen-reviewer (advisory, never blocks)
 ```
 
+Hooks fire alongside this flow on session/compaction/subagent events — see [Hooks](#hooks) below.
+
+## Hooks
+
+Wired in `hooks/hooks.json`.
+
+| Event | Matcher | Script | What it does |
+|---|---|---|---|
+| `SessionStart` | `startup` | `update-context.sh` | Self-learning `.claude/context.json` updater. Detects active feature from current branch and infers test command from project layout. Idempotent — only fills missing fields, never overwrites developer-set ones. Prefers `jq`, falls back to Python3. |
+| `PreCompact` | `compact` | `snapshot-state.sh` | Persists pipeline state (`CLAUDE_PIPELINE_*` env vars) to `specs/features/<slug>/.pipeline-state.json` before context compaction, so long-running `/spike`, `/plan`, `/task` runs survive compression. No-op outside a pipeline run. |
+| `SubagentStop` | `ashen-*-builder` agents | `run-tests-on-stop.sh` | Auto-detects stack and runs tests after a builder agent finishes. Opt-in via `HARNESS_AUTOTEST=1`; no-op otherwise. |
+
 ## Commands
 
 | Command | What it does |
