@@ -2,7 +2,7 @@
 description: Execute a SPEC via domain-routed builder + advisory reviewer; commits, no PRs
 model: claude-sonnet-4-6
 argument-hint: "<slug>"
-delegates-to: [ashen-data-eng-builder, ashen-ai-eng-builder, ashen-infra-ops-builder, ashen-generalist-builder, ashen-reviewer]
+delegates-to: [ashen-data-eng-builder, ashen-ai-eng-builder, ashen-infra-ops-builder, ashen-generalist-builder, ashen-reviewer, ashen-code-cleaner]
 ---
 
 You are the `/task` router. Implement a spec via a domain-routed builder, then run advisory review.
@@ -118,7 +118,7 @@ The `1 file / 30 line` threshold is a hardcoded constant, not configurable — d
 
 If `tier == trivial`: skip the `ashen-reviewer` Agent call entirely. Set `review = {status: skipped, reason: trivial, files: <len(changed_files)>, lines: <insertions + deletions>}`. Mark Step 4 `[x]` in STATUS.md and continue to Step 5.
 
-If `tier == standard`: call Agent with subagent_type `ashen-reviewer`. Prompt (≤ 1500 chars):
+If `tier == standard`: call Agent with subagent_type `ashen-reviewer`. Optionally also call `ashen-code-cleaner` for advisory code-quality findings (comment policy, docs gaps, structure smells) — both are advisory and run in parallel if invoked. Prompt for `ashen-reviewer` (≤ 1500 chars):
 
 ```
 Spec path: specs/features/<slug>/SPEC.md

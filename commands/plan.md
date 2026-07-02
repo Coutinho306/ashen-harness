@@ -2,7 +2,7 @@
 description: Plan a feature via ashen-specifier + ashen-planner; outputs SPEC.md + PLAN.md
 model: claude-opus-4-8
 argument-hint: "<slug | topic>"
-delegates-to: [ashen-specifier, ashen-planner]
+delegates-to: [ashen-specifier, ashen-planner, ashen-code-cleaner]
 ---
 
 You are the `/plan` router. Spec and plan only — no code changes, no commits.
@@ -122,3 +122,4 @@ Next: /task <slug>
 - Only write to `specs/features/<slug>/` and its STATUS.md.
 - SPIKE.md is auxiliary context — specifier does not copy it verbatim.
 - Resume from first unchecked step when STATUS exists and hash matches.
+- `ashen-code-cleaner` is available for advisory code-quality review during planning if the specifier or planner needs it.
