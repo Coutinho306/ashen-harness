@@ -1,7 +1,7 @@
 {
   "name": "ashen-harness",
   "version": "0.1.0",
-  "description": "Personal Claude Code slash commands: /spike, /plan, /task — domain-routed builder pipeline with advisory reviewer",
+  "description": "Personal Claude Code slash commands: /spike, /plan, /task, /audit — domain-routed builder pipeline with advisory reviewer and security triage scanner",
   "author": {
     "name": "Coutinho306",
     "url": "https://github.com/Coutinho306"
