@@ -15,11 +15,31 @@ If `$ARGUMENTS` is empty: use `AskUserQuestion` to ask for the topic before cont
 
 Resolve slug: if arg is already kebab-case with no spaces, use as-is; else convert topic to kebab-case (lowercase, spaces→hyphens, strip punctuation).
 
-Probe `specs/spikes/<slug>/STATUS.md`:
-- If exists: read it. If `overall_status: done`, report "already done" + SPIKE.md path and stop.
-- If exists and `overall_status: in_progress` and `source_hash` matches: resume from first unchecked step.
+**Resolve slug directory** (run this shell logic; store result in `$dir`):
+```bash
+dir=$(ls -d specs/spikes/[0-9][0-9][0-9][0-9]-<slug> \
+              specs/spikes/<slug> \
+              specs/spikes/done/[0-9][0-9][0-9][0-9]-<slug> \
+              specs/spikes/done/<slug> 2>/dev/null | head -1)
+```
+First match wins (numbered-active → bare-active → numbered-done → bare-done).
+
+If `$dir` is empty, this is a new slug — compute the next sequence number and bootstrap:
+```bash
+next=$(printf '%04d' $(( $(ls -d specs/spikes/[0-9][0-9][0-9][0-9]-* \
+                                 specs/spikes/done/[0-9][0-9][0-9][0-9]-* 2>/dev/null \
+                            | sed -E 's#.*/([0-9]{4})-.*#\1#' \
+                            | sort -n | tail -1 | sed 's/^0*//' | grep -E '.' || echo 0) + 1 )))
+dir="specs/spikes/${next}-<slug>"
+```
+The zero-pad width is 4 (`%04d`). With no existing numbered dirs, `next=0001`.
+
+Probe `$dir/STATUS.md`:
+- If `$dir` is under `specs/spikes/done/` and STATUS has `overall_status: done`: report "already done" with path `$dir/SPIKE.md` and stop.
+- If STATUS exists and `overall_status: done` (active dir): report "already done" + SPIKE.md path and stop.
+- If STATUS exists and `overall_status: in_progress` and `source_hash` matches: resume from first unchecked step.
 - Else: bootstrap STATUS.md from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`, filling:
-  - `slug`: resolved slug
+  - `slug`: resolved slug (bare kebab, no numeric prefix)
   - `command`: spike
   - `overall_status`: in_progress
   - `last_updated`: now (YYYY-MM-DD HH:MM)
@@ -46,7 +66,7 @@ Emit the routing log block:
 📍 spike router
    slug:    <slug>
    domain:  <domain>
-   target:  specs/spikes/<slug>/SPIKE.md
+   target:  $dir/SPIKE.md
    hash:    <first 8 chars of source_hash>
 ```
 
@@ -54,14 +74,14 @@ Mark Step 2 `[x]` in STATUS.md.
 
 ## Step 3 — Delegate ashen-spike-researcher
 
-Create `specs/spikes/<slug>/` directory if absent.
+Create `$dir/` directory if absent.
 
 Call Agent with subagent_type `ashen-spike-researcher`. Prompt (≤ 1500 chars):
 
 ```
 Research topic: "<topic>"
 Domain: <domain>
-Target path: specs/spikes/<slug>/SPIKE.md
+Target path: $dir/SPIKE.md
 CWD hints (files present): <comma-separated list from Step 1 probe>
 
 Investigate the topic using the domain checklist for <domain>. Produce SPIKE.md at the target path. Return: path + ≤200-byte summary of recommendation.
@@ -71,7 +91,7 @@ Mark Step 3 `[x]` in STATUS.md.
 
 ## Step 4 — Verify + finalize
 
-Verify `specs/spikes/<slug>/SPIKE.md` exists:
+Verify `$dir/SPIKE.md` exists:
 - If missing but researcher returned inline content: write the content to that path manually.
 - If missing and no inline content: report failure, leave STATUS `in_progress`.
 
@@ -80,10 +100,20 @@ Update STATUS.md:
 - Set `overall_status: done`
 - Set `last_updated`: now
 
+Archive the slug directory to `specs/spikes/done/`:
+```bash
+mkdir -p specs/spikes/done
+if git ls-files --error-unmatch "$dir" >/dev/null 2>&1; then
+  git mv "$dir" "specs/spikes/done/$(basename "$dir")"
+else
+  mv "$dir" "specs/spikes/done/$(basename "$dir")"
+fi
+```
+
 Print final report:
 ```
 ✅ SPIKE complete
-   path:    specs/spikes/<slug>/SPIKE.md
+   path:    specs/spikes/done/<dirname>/SPIKE.md
    domain:  <domain>
    summary: <≤200-byte summary from researcher>
 
@@ -92,5 +122,6 @@ Next: /plan <slug>
 
 ## Rules
 - No feature code. No commits. No installs.
-- Only write to `specs/spikes/<slug>/` and `specs/spikes/<slug>/STATUS.md`.
+- Only write to `$dir/` and `$dir/STATUS.md`.
 - Resume from first unchecked step when STATUS exists and hash matches.
+- The `slug:` field in STATUS.md frontmatter is always the bare kebab slug (no numeric prefix). The number lives only in the directory path.
