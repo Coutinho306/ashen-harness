@@ -13,14 +13,33 @@ Slug: $ARGUMENTS
 
 If `$ARGUMENTS` is empty: use `AskUserQuestion` to ask for the slug before continuing.
 
-Try to read `specs/features/<slug>/SPEC.md`. If missing, try `specs/<slug>.md` and `specs/<slug>-*.md` (glob). If still not found, stop and report: "SPEC not found at specs/features/<slug>/SPEC.md — run /plan <slug> first."
+**Resolve slug directory** (run this shell logic; store result in `$dir`):
+```bash
+dir=$(ls -d specs/features/[0-9][0-9][0-9][0-9]-<slug> \
+              specs/features/<slug> \
+              specs/features/done/[0-9][0-9][0-9][0-9]-<slug> \
+              specs/features/done/<slug> 2>/dev/null | head -1)
+```
+First match wins (numbered-active → bare-active → numbered-done → bare-done).
+
+If `$dir` is empty, this is a new slug that has no SPEC yet — try the SPEC fallback search below before concluding it is unplanned.
+
+**SPEC resolution**: Try to read `$dir/SPEC.md`. If `$dir` is empty or `$dir/SPEC.md` is missing, search these fallback locations in order:
+1. `specs/features/[0-9][0-9][0-9][0-9]-<slug>/SPEC.md` (numbered active)
+2. `specs/features/<slug>/SPEC.md` (bare active)
+3. `specs/features/done/[0-9][0-9][0-9][0-9]-<slug>/SPEC.md` (numbered done)
+4. `specs/features/done/<slug>/SPEC.md` (bare done)
+5. `specs/<slug>.md`
+6. `specs/<slug>-*.md` (glob)
+
+If SPEC is found via fallback, update `$dir` to the directory containing that SPEC. If still not found after all fallbacks, stop and report: "SPEC not found for slug <slug> — run /plan <slug> first."
 
 Run these probes in parallel:
-- Read `specs/features/<slug>/SPEC.md` — parse YAML frontmatter for `domain`, `status`, `slug`
-- `cat specs/features/<slug>/PLAN.md 2>/dev/null` → capture plan_content (empty if absent)
-- `cat specs/features/<slug>/STATUS.md 2>/dev/null` → check if resumable
+- Read `$dir/SPEC.md` — parse YAML frontmatter for `domain`, `status`, `slug`
+- `cat $dir/PLAN.md 2>/dev/null` → capture plan_content (empty if absent)
+- `cat $dir/STATUS.md 2>/dev/null` → check if resumable
 
-Parse `domain` from SPEC frontmatter (use bash one-liner: `python3 -c "import sys; lines=[l for l in open('specs/features/<slug>/SPEC.md').readlines()]; fm=''.join(lines[1:lines.index('---\n',1)]); exec('import yaml'); print(yaml.safe_load(fm).get('domain',''))" 2>/dev/null || grep "^domain:" specs/features/<slug>/SPEC.md | head -1 | cut -d' ' -f2`).
+Parse `domain` from SPEC frontmatter (use bash one-liner: `python3 -c "import sys; lines=[l for l in open('$dir/SPEC.md').readlines()]; fm=''.join(lines[1:lines.index('---\n',1)]); exec('import yaml'); print(yaml.safe_load(fm).get('domain',''))" 2>/dev/null || grep "^domain:" $dir/SPEC.md | head -1 | cut -d' ' -f2`).
 
 If `domain` is empty or unset: use `AskUserQuestion` with question "Which domain does this task fall under?" and options `[data-eng, ai-eng, infra-ops, generalist]`. Then update SPEC frontmatter: replace `domain: ` line with the chosen value (use Edit tool).
 
@@ -32,12 +51,24 @@ Route:
 
 Compute `source_hash = sha256(spec_body + plan_body)` (first 8 chars).
 
-STATUS.md logic at `specs/features/<slug>/STATUS.md`:
-- If done → report "already done" + commits list and stop.
-- If in_progress and hash matches → resume from first `[ ]` step.
+STATUS.md logic at `$dir/STATUS.md`:
+- If `$dir` is under a `done/` path and STATUS has `overall_status: done`: report "already done" with path `$dir` and commits list, then stop.
+- If STATUS exists and `overall_status: done` → report "already done" + commits list and stop.
+- If STATUS exists and `overall_status: in_progress` and hash matches → resume from first `[ ]` step.
 - Else → bootstrap from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`:
-  - slug, command=task, overall_status=in_progress, last_updated=now, source_hash
+  - slug (bare kebab, no numeric prefix), command=task, overall_status=in_progress, last_updated=now, source_hash
   - Steps: 1. Pre-fetch + route / 2. Build / 3. Verify / 4. Review / 5. Finalize
+
+If `$dir` is empty (no existing dir and SPEC was found via legacy path), compute next sequence number and set `$dir`:
+```bash
+_fp="specs/features"
+next=$(printf '%04d' $(( $(ls -d ${_fp}/[0-9][0-9][0-9][0-9]-* \
+                                 ${_fp}/done/[0-9][0-9][0-9][0-9]-* 2>/dev/null \
+                            | sed -E 's#.*/([0-9]{4})-.*#\1#' \
+                            | sort -n | tail -1 | sed 's/^0*//' | grep -E '.' || echo 0) + 1 )))
+dir="${_fp}/${next}-<slug>"
+```
+The zero-pad width is 4 (`%04d`). With no existing numbered dirs, `next=0001`.
 
 Emit routing block:
 ```
@@ -45,8 +76,8 @@ Emit routing block:
    slug:    <slug>
    domain:  <domain>
    builder: <subagent-name>
-   spec:    specs/features/<slug>/SPEC.md
-   plan:    <specs/features/<slug>/PLAN.md | none>
+   spec:    $dir/SPEC.md
+   plan:    <$dir/PLAN.md | none>
    hash:    <first 8 chars>
 ```
 
@@ -57,8 +88,8 @@ Mark Step 1 `[x]` in STATUS.md.
 Call Agent with subagent_type `<chosen-builder>`. Prompt (≤ 1500 chars):
 
 ```
-Spec path: specs/features/<slug>/SPEC.md
-Plan path: <specs/features/<slug>/PLAN.md | none>
+Spec path: $dir/SPEC.md
+Plan path: <$dir/PLAN.md | none>
 Task IDs: all uncompleted tasks in SPEC
 CWD hints: <cwd>
 
@@ -82,7 +113,7 @@ Receive `changed_files[]` and `commits[]`. Mark Step 2 `[x]` in STATUS.md.
 
 ## Step 3 — Verify
 
-Read `specs/features/<slug>/SPEC.md` and extract the `## Validation` section (everything between `## Validation` and the next `##` heading).
+Read `$dir/SPEC.md` and extract the `## Validation` section (everything between `## Validation` and the next `##` heading).
 
 If the section is missing or contains no fenced shell code blocks: `verify = {status: skipped, commands: [], total: 0}`. Skip to marking Step 3 `[x]`.
 
@@ -121,7 +152,7 @@ If `tier == trivial`: skip the `ashen-reviewer` Agent call entirely. Set `review
 If `tier == standard`: call Agent with subagent_type `ashen-reviewer`. Optionally also call `ashen-code-cleaner` for advisory code-quality findings (comment policy, docs gaps, structure smells) — both are advisory and run in parallel if invoked. Prompt for `ashen-reviewer` (≤ 1500 chars):
 
 ```
-Spec path: specs/features/<slug>/SPEC.md
+Spec path: $dir/SPEC.md
 Diff ref: HEAD~<commit_count>..HEAD
 CWD: <cwd>
 
@@ -134,9 +165,19 @@ Receive `findings[]`. Set `review = {status: reviewed}`. Mark Step 4 `[x]` in ST
 
 ## Step 5 — Finalize
 
-If `verify.status` is `pass` or `skipped`: update `specs/features/<slug>/SPEC.md` frontmatter, set `status: done`. Set `overall_status: done` in STATUS.md.
+If `verify.status` is `pass` or `skipped`: update `$dir/SPEC.md` frontmatter, set `status: done`. Set `overall_status: done` in STATUS.md.
 
-If `verify.status` is `fail`: leave SPEC `status` unchanged. Set `overall_status: blocked` in STATUS.md. Append failure detail to STATUS notes:
+Then archive the slug directory to `specs/features/done/`:
+```bash
+mkdir -p specs/features/done
+if git ls-files --error-unmatch "$dir" >/dev/null 2>&1; then
+  git mv "$dir" "specs/features/done/$(basename "$dir")"
+else
+  mv "$dir" "specs/features/done/$(basename "$dir")"
+fi
+```
+
+If `verify.status` is `fail`: leave SPEC `status` unchanged. Set `overall_status: blocked` in STATUS.md. Do NOT move the directory — leave it active so the user can find and fix it. Append failure detail to STATUS notes:
 ```
 ## Verify failure (<date>)
 status: fail
@@ -159,25 +200,27 @@ Print final report. On `verify.status` pass or skipped:
 ```
 ✅ task complete
    slug:     <slug>
+   dir:      specs/features/done/<dirname>
    commits:  <count> — <list of hash + message>
    files:    <changed_files list>
    verify:   <verify.status> (<total> command(s))
    findings: <if review.status == skipped: "skipped (trivial)"; else: "risk: N  warn: N  info: N">
 
-Review notes: specs/features/<slug>/STATUS.md
+Review notes: specs/features/done/<dirname>/STATUS.md
 ```
 
 On `verify.status` fail:
 ```
 ⚠️ task blocked — verify failed
    slug:     <slug>
+   dir:      $dir
    commits:  <count> — <list of hash + message>
    files:    <changed_files list>
    verify:   fail — <failing cmd> (exit <exit>)
    tail:     <tail>
    findings: <if review.status == skipped: "skipped (trivial)"; else: "risk: N  warn: N  info: N">
 
-SPEC status left unchanged. See specs/features/<slug>/STATUS.md
+SPEC status left unchanged. See $dir/STATUS.md
 ```
 
 ## Rules
@@ -187,3 +230,4 @@ SPEC status left unchanged. See specs/features/<slug>/STATUS.md
 - Reviewer findings are notes only — never halt or revert on findings alone.
 - `tier` gates only Step 4 (Review). Verify (Step 3) and Finalize (Step 5) always run unconditionally.
 - If SPEC `status` is already `done`, ask user to confirm re-run before proceeding.
+- The `slug:` field in STATUS.md frontmatter is always the bare kebab slug (no numeric prefix). The number lives only in the directory path.
