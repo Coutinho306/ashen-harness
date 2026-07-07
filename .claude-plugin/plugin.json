@@ -1,6 +1,6 @@
 {
   "name": "ashen-harness",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Personal Claude Code slash commands: /spike, /plan, /task, /audit — domain-routed builder pipeline with advisory reviewer and security triage scanner",
   "author": {
     "name": "Coutinho306",
