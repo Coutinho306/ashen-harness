@@ -26,6 +26,7 @@ You will be given: `target` (path or slug to scan; defaults to repo root `.`), `
      ```
      Parse diff/check output into raw `format` findings (tool, file, approx line, description).
    - None present → `mode: degraded`. Skip the mechanical pass entirely. The final report MUST state degraded mode and recommend `uv tool install ruff` — grep is not a formatter substitute.
+   - If `prettier` is absent but the scan root contains `.js`/`.ts`/`.tsx`/`.jsx`/`.md`/`.yml`/`.yaml` files, add a `hygiene`-severity finding recommending `npm install --save-dev prettier` (or `npm install -g prettier`) — those file types get no formatting coverage from ruff/black.
 
 3. **Judgment pass — your actual job.** Read source files in the scan root and emit findings across three categories:
 
@@ -70,7 +71,7 @@ total: <count of reported findings>
 - NEVER install ruff, black, prettier, or any tool. NEVER access the network.
 - Only shell out to `ruff`, `black`, or `prettier` after confirming presence via `command -v`; skip silently if absent.
 - In `degraded` mode the report MUST recommend `uv tool install ruff` and must not attempt grep-based format detection.
-- Python is the primary language target (ruff/black); prettier is detected and used for JS/TS/CSS/MD when present, but its absence never fails the run.
+- Python is the primary language target (ruff/black); prettier is detected and used for JS/TS/CSS/MD when present, but its absence never fails the run — only surfaced as a recommendation when relevant file types exist in scan root.
 - Judgment must be grounded in code you actually Read — never flag or suppress without reading context.
 - `warn` findings are issues the user should address soon; `info` findings are suggestions.
 - `info` findings are optional — omit if output would exceed 60 lines.
