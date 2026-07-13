@@ -17,27 +17,30 @@ Resolve slug: if arg is already kebab-case with no spaces, use as-is; else conve
 
 **Resolve slug directory** (run this shell logic; store result in `$dir`):
 ```bash
+# Active-tree resolution — this is what $dir becomes for an in-flight/new slug
 dir=$(ls -d specs/spikes/[0-9][0-9][0-9][0-9]-<slug> \
-              specs/spikes/<slug> \
-              specs/spikes/done/[0-9][0-9][0-9][0-9]-<slug> \
-              specs/spikes/done/<slug> 2>/dev/null | head -1)
+              specs/spikes/<slug> 2>/dev/null | head -1)
+# Separate: was this slug already completed and archived?
+done_dir=$(ls -d specs/spikes/done/[0-9][0-9][0-9][0-9]-<slug> \
+                 specs/spikes/done/<slug> 2>/dev/null | head -1)
 ```
-First match wins (numbered-active → bare-active → numbered-done → bare-done).
+For `$dir`, first match wins (numbered-active → bare-active). `$done_dir` is only used to detect an already-completed slug (see the STATUS probe below); it never becomes `$dir`.
 
-If `$dir` is empty, this is a new slug — compute the next sequence number and bootstrap:
+If `$dir` is empty (and `$done_dir` did not short-circuit to "already done"), this is a new slug — compute the next sequence number and bootstrap:
 ```bash
-next=$(printf '%04d' $(( $(ls -d specs/spikes/[0-9][0-9][0-9][0-9]-* \
-                                 specs/spikes/done/[0-9][0-9][0-9][0-9]-* 2>/dev/null \
+_sp="specs/spikes"
+next=$(printf '%04d' $(( $(ls -d ${_sp}/[0-9][0-9][0-9][0-9]-* \
+                                 ${_sp}/done/[0-9][0-9][0-9][0-9]-* 2>/dev/null \
                             | sed -E 's#.*/([0-9]{4})-.*#\1#' \
                             | sort -n | tail -1 | sed 's/^0*//' | grep -E '.' || echo 0) + 1 )))
-dir="specs/spikes/${next}-<slug>"
+dir="${_sp}/${next}-<slug>"
 ```
-The zero-pad width is 4 (`%04d`). With no existing numbered dirs, `next=0001`.
+The zero-pad width is 4 (`%04d`). With no existing numbered dirs anywhere, `next=0001`. The next-number scan includes the archived subtree (via `${_sp}/done/`) to avoid collisions — but the resolved `$dir` for an in-flight slug always points into the active `specs/spikes/` tree.
 
-Probe `$dir/STATUS.md`:
-- If `$dir` is under `specs/spikes/done/` and STATUS has `overall_status: done`: report "already done" with path `$dir/SPIKE.md` and stop.
-- If STATUS exists and `overall_status: done` (active dir): report "already done" + SPIKE.md path and stop.
-- If STATUS exists and `overall_status: in_progress` and `source_hash` matches: resume from first unchecked step.
+Probe STATUS:
+- If `$done_dir` is non-empty: this slug was already completed and archived — report "already done" with path `$done_dir/SPIKE.md` and stop.
+- If `$dir/STATUS.md` exists and `overall_status: done` (active dir): report "already done" + SPIKE.md path and stop.
+- If `$dir/STATUS.md` exists and `overall_status: in_progress` and `source_hash` matches: resume from first unchecked step.
 - Else: bootstrap STATUS.md from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`, filling:
   - `slug`: resolved slug (bare kebab, no numeric prefix)
   - `command`: spike
@@ -50,6 +53,8 @@ Probe cwd hints (run these in parallel, capture file existence as list):
 - `ls pyproject.toml dbt_project.yml *.tf Dockerfile 2>/dev/null`
 - `find .github/workflows -name "*.yml" 2>/dev/null | head -3`
 - `grep -rl "langgraph\|langchain\|openai\|anthropic\|llm" . --include="*.py" 2>/dev/null | head -5`
+
+Create `$dir/` directory if absent.
 
 Mark Step 1 `[x]` in STATUS.md.
 
@@ -73,8 +78,6 @@ Emit the routing log block:
 Mark Step 2 `[x]` in STATUS.md.
 
 ## Step 3 — Delegate ashen-spike-researcher
-
-Create `$dir/` directory if absent.
 
 Call Agent with subagent_type `ashen-spike-researcher`. Prompt (≤ 1500 chars):
 
