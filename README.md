@@ -8,6 +8,8 @@ Modern engineering workflows benefit from structure: research before plan, plan 
 
 The result: less drift between intent and output, clearer artifacts (SPIKE.md, SPEC.md, PLAN.md) at each stage, and a pluggable model where new domains add a builder without changing the routing layer.
 
+Alongside the build pipeline, three standalone advisory commands work on any tree without a spec: `/audit` (security triage), `/tidy` (code-quality scan), and `/eval-sweep` (offline eval-sweep scaffolding). All advisory scanners delegate detection to deterministic tools when present and never write, commit, or block.
+
 ## Architecture
 
 ```
@@ -31,6 +33,15 @@ The result: less drift between intent and output, clearer artifacts (SPIKE.md, S
    ├─→ verify gate (against SPEC ## Validation)
    │
    └─→ ashen-reviewer (advisory, never blocks)
+
+Standalone advisory scanners (whole-tree, no build pipeline):
+
+/audit <path>          /tidy <path>           /eval-sweep <slug>
+   │                       │                       │
+   └─→ ashen-             └─→ ashen-             └─→ ashen-ai-eng-builder
+       security-scanner       code-cleaner           (scaffolds eval_sweep.py
+       (findings by           (findings by            + sweep_config.json;
+        severity)              category)               runs offline, no cost)
 ```
 
 Hooks fire alongside this flow on session/compaction/subagent events — see [Hooks](#hooks) below.
@@ -52,6 +63,9 @@ Wired in `hooks/hooks.json`.
 | `/spike <topic>` | Delegates to `ashen-spike-researcher`; outputs `specs/spikes/<slug>/SPIKE.md` |
 | `/plan <slug>` | Delegates to `ashen-specifier` then `ashen-planner`; outputs `SPEC.md` + `PLAN.md` |
 | `/task <slug>` | Routes to domain builder (`data-eng`, `ai-eng`, `infra-ops`, `generalist`), runs a post-build verify gate against SPEC's `## Validation` commands, then advisory reviewer |
+| `/audit <path\|slug>` | Delegates to `ashen-security-scanner`; whole-tree security scan (gitleaks/bandit/semgrep, grep fallback), returns findings grouped by severity. Advisory — no changes, no commits. Resumable via `specs/audits/<slug>/STATUS.md` |
+| `/tidy <path\|slug>` | Delegates to `ashen-code-cleaner`; code-quality scan (ruff/black/prettier report-only + LLM judgment on comments, docs, structure), returns findings grouped by category. Advisory — no changes, no commits. Resumable via STATUS.md |
+| `/eval-sweep <slug>` | Delegates to `ashen-ai-eng-builder`; scaffolds `eval_sweep.py` + `sweep_config.json` into the repo root and commits them. Sweep runs offline — no LLM cost. Never executes the sweep |
 
 ## Requirements
 
@@ -101,7 +115,7 @@ claude plugin marketplace remove ashen-harness
 If you added bare-name aliases (below), also remove them:
 
 ```
-rm ~/.claude/commands/spike.md ~/.claude/commands/plan.md ~/.claude/commands/task.md
+rm ~/.claude/commands/{spike,plan,task,audit,tidy,eval-sweep}.md
 ```
 
 ## Bare-name aliases (`/spike` instead of `/ashen-harness:spike`)
@@ -112,8 +126,16 @@ Claude Code doesn't let a plugin register a bare top-level command name — only
 **personal** commands (`~/.claude/commands/`) are exempt from prefixing. So the fix
 is a one-time local alias install, not something the plugin can do for you automatically.
 
-Wrapper sources live in this repo under `aliases/` — copy them into your personal
-commands dir once per machine:
+Wrapper sources live in this repo under `aliases/` (one per command: `spike`,
+`plan`, `task`, `audit`, `tidy`, `eval-sweep`). Install them into your personal
+commands dir once per machine. Either symlink them (picks up new aliases as the
+repo adds them) via the helper script:
+
+```
+scripts/link-aliases.sh
+```
+
+or copy them verbatim:
 
 ```
 cp aliases/*.md ~/.claude/commands/
@@ -152,3 +174,5 @@ which plugin you meant.
 | `ashen-infra-ops-builder` | infra-ops | Terraform, CI, Docker |
 | `ashen-generalist-builder` | generalist | scripts, configs, tooling |
 | `ashen-reviewer` | all | Advisory code review (never blocks) |
+| `ashen-security-scanner` | all | Advisory security triage — delegates to gitleaks/bandit/semgrep, grep fallback (never blocks) |
+| `ashen-code-cleaner` | all | Advisory code-quality scan — delegates to ruff/black/prettier + LLM judgment (never writes, never blocks) |
