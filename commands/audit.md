@@ -26,9 +26,9 @@ Probe `specs/audits/<slug>/STATUS.md` where `<slug>` is derived from arg (kebab-
   - `source_hash`: sha256 of (target arg + cwd)
   - Steps: 1. Pre-fetch + bootstrap / 2. Delegate scanner / 3. Verify + finalize
 
-Create `specs/audits/<slug>/` directory if absent.
+Create `specs/audits/<slug>/` directory if absent. **Write STATUS.md to disk now** (Write tool) — before continuing. Every "Mark Step N" below means: Edit the file on disk immediately, not at the end.
 
-Mark Step 1 `[x]` in STATUS.md.
+Edit `specs/audits/<slug>/STATUS.md` now: mark Step 1 `[x]`, update `last_updated`.
 
 ## Step 2 — Delegate ashen-security-scanner
 
@@ -51,13 +51,13 @@ Scan the target for security issues. Detect gitleaks/bandit/semgrep first and us
 
 If scanner delegation fails: log "scanner unavailable" in STATUS notes and continue.
 
-Receive `mode`, `tools_used`, `findings[]`, `suppressed`. Mark Step 2 `[x]` in STATUS.md.
+Receive `mode`, `tools_used`, `findings[]`, `suppressed`. Edit `specs/audits/<slug>/STATUS.md` now: mark Step 2 `[x]`, update `last_updated`.
 
 ## Step 3 — Verify + finalize
 
 Confirm `findings[]` (or empty list) was returned by the scanner.
 
-Mark Step 3 `[x]` in STATUS.md. Set `overall_status: done`. Update `last_updated`.
+Edit `specs/audits/<slug>/STATUS.md` now: mark Step 3 `[x]`, set `overall_status: done`, update `last_updated`.
 
 Append to STATUS.md notes:
 ```

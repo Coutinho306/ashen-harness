@@ -54,9 +54,9 @@ Probe cwd hints (run these in parallel, capture file existence as list):
 - `find .github/workflows -name "*.yml" 2>/dev/null | head -3`
 - `grep -rl "langgraph\|langchain\|openai\|anthropic\|llm" . --include="*.py" 2>/dev/null | head -5`
 
-Create `$dir/` directory if absent.
+Create `$dir/` directory if absent. **Write STATUS.md to disk now** (Write tool) — before continuing. Every "Mark Step N" below means: Edit the file on disk immediately, not at the end.
 
-Mark Step 1 `[x]` in STATUS.md.
+Edit `$dir/STATUS.md` now: mark Step 1 `[x]`, update `last_updated`.
 
 ## Step 2 — Route domain
 
@@ -75,7 +75,7 @@ Emit the routing log block:
    hash:    <first 8 chars of source_hash>
 ```
 
-Mark Step 2 `[x]` in STATUS.md.
+Edit `$dir/STATUS.md` now: mark Step 2 `[x]`, update `last_updated`.
 
 ## Step 3 — Delegate ashen-spike-researcher
 
@@ -90,7 +90,7 @@ CWD hints (files present): <comma-separated list from Step 1 probe>
 Investigate the topic using the domain checklist for <domain>. Produce SPIKE.md at the target path. Return: path + ≤200-byte summary of recommendation.
 ```
 
-Mark Step 3 `[x]` in STATUS.md.
+Edit `$dir/STATUS.md` now: mark Step 3 `[x]`, update `last_updated`.
 
 ## Step 4 — Verify + finalize
 
@@ -98,7 +98,7 @@ Verify `$dir/SPIKE.md` exists:
 - If missing but researcher returned inline content: write the content to that path manually.
 - If missing and no inline content: report failure, leave STATUS `in_progress`.
 
-Update STATUS.md:
+Edit `$dir/STATUS.md` now:
 - Mark Step 4 `[x]`
 - Set `overall_status: done`
 - Set `last_updated`: now

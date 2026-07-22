@@ -50,9 +50,9 @@ STATUS.md logic:
   - `source_hash`: computed hash
   - Steps: 1. Pre-fetch + bootstrap / 2. Specifier → SPEC.md / 3. Checkpoint / 4. Planner → PLAN.md
 
-Create `$dir/` directory if absent.
+Create `$dir/` directory if absent. **Write STATUS.md to disk now** (Write tool) — before continuing. Every "Mark Step N" below means: Edit the file on disk immediately, not at the end.
 
-Mark Step 1 `[x]` in STATUS.md.
+Edit `$dir/STATUS.md` now: mark Step 1 `[x]`, update `last_updated`.
 
 ## Step 2 — Delegate ashen-specifier
 
@@ -78,7 +78,7 @@ Author SPEC.md at the target path. If SPIKE path is provided, read it as auxilia
 
 Verify `$dir/SPEC.md` exists after agent returns. If missing but content returned inline, write it manually.
 
-Mark Step 2 `[x]` in STATUS.md. Update `last_updated`.
+Edit `$dir/STATUS.md` now: mark Step 2 `[x]`, update `last_updated`.
 
 Print SPEC summary:
 ```
@@ -98,7 +98,7 @@ AskUserQuestion:
 - `edit-spec-first` → update STATUS note: "user wants to edit SPEC before planning". Set `overall_status: in_progress`. Print: "Edit `$dir/SPEC.md` then re-run `/plan <slug>`. STATUS will resume from planner step." Stop.
 - `abort` → mark STATUS `overall_status: done`, note "aborted at checkpoint". Stop.
 
-Mark Step 3 `[x]` in STATUS.md.
+Edit `$dir/STATUS.md` now: mark Step 3 `[x]`, update `last_updated`.
 
 ## Step 4 — Delegate ashen-planner
 
@@ -121,7 +121,7 @@ Read SPEC.md fully. Produce PLAN.md at target path with dependency-ordered phase
 
 Verify `$dir/PLAN.md` exists. If missing but content returned inline, write it manually.
 
-Mark Step 4 `[x]` in STATUS.md. Set `overall_status: done`. Update `last_updated`.
+Edit `$dir/STATUS.md` now: mark Step 4 `[x]`, set `overall_status: done`, update `last_updated`.
 
 Print final report:
 ```

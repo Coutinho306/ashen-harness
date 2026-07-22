@@ -58,6 +58,7 @@ STATUS.md logic at `$dir/STATUS.md`:
 - Else → bootstrap from template at `${CLAUDE_PLUGIN_ROOT}/templates/STATUS.md`:
   - slug (bare kebab, no numeric prefix), command=task, overall_status=in_progress, last_updated=now, source_hash
   - Steps: 1. Pre-fetch + route / 2. Build / 3. Verify / 4. Review / 5. Finalize
+  - **Write this file to `$dir/STATUS.md` immediately** (Write tool), before doing any other Step 1 work. Do not hold STATUS state in memory only — every "Mark Step N `[x]`" instruction below means: Edit `$dir/STATUS.md` on disk right now, not at the end.
 
 If `$dir` is empty (no existing dir and SPEC was found via legacy path), compute next sequence number and set `$dir`:
 ```bash
@@ -81,7 +82,7 @@ Emit routing block:
    hash:    <first 8 chars>
 ```
 
-Mark Step 1 `[x]` in STATUS.md.
+Edit `$dir/STATUS.md` now: mark Step 1 `[x]`, update `last_updated`.
 
 ## Step 2 — Build
 
@@ -109,7 +110,7 @@ Return: changed_files[], commits[] (hash + message).
 
 If delegation fails, implement inline using Edit/Write/Bash with the same commit contract.
 
-Receive `changed_files[]` and `commits[]`. Mark Step 2 `[x]` in STATUS.md.
+Receive `changed_files[]` and `commits[]`. Edit `$dir/STATUS.md` now: mark Step 2 `[x]`, update `last_updated`.
 
 ## Step 3 — Verify
 
@@ -130,7 +131,7 @@ Compute `verify.status`:
 
 `verify = {status, commands: [...], total: N}` where `N` is the number of commands declared.
 
-Mark Step 3 `[x]` in STATUS.md. Verify is unconditional — it always runs regardless of `tier` (computed below) and `tier` never gates Step 3 or Step 5 (Finalize).
+Edit `$dir/STATUS.md` now: mark Step 3 `[x]`, update `last_updated`. Verify is unconditional — it always runs regardless of `tier` (computed below) and `tier` never gates Step 3 or Step 5 (Finalize).
 
 ## Tier classifier
 
@@ -147,7 +148,7 @@ The `1 file / 30 line` threshold is a hardcoded constant, not configurable — d
 
 ## Step 4 — Review (advisory)
 
-If `tier == trivial`: skip the `ashen-reviewer` Agent call entirely. Set `review = {status: skipped, reason: trivial, files: <len(changed_files)>, lines: <insertions + deletions>}`. Mark Step 4 `[x]` in STATUS.md and continue to Step 5.
+If `tier == trivial`: skip the `ashen-reviewer` Agent call entirely. Set `review = {status: skipped, reason: trivial, files: <len(changed_files)>, lines: <insertions + deletions>}`. Edit `$dir/STATUS.md` now: mark Step 4 `[x]`, update `last_updated`. Continue to Step 5.
 
 If `tier == standard`: call Agent with subagent_type `ashen-reviewer`. Optionally also call `ashen-code-cleaner` for advisory code-quality findings (comment policy, docs gaps, structure smells) — both are advisory and run in parallel if invoked. Prompt for `ashen-reviewer` (≤ 1500 chars):
 
@@ -161,7 +162,7 @@ Review the implementation against SPEC acceptance criteria. Return structured fi
 
 If reviewer delegation fails: log "reviewer unavailable" in STATUS notes and continue.
 
-Receive `findings[]`. Set `review = {status: reviewed}`. Mark Step 4 `[x]` in STATUS.md.
+Receive `findings[]`. Set `review = {status: reviewed}`. Edit `$dir/STATUS.md` now: mark Step 4 `[x]`, update `last_updated`.
 
 ## Step 5 — Finalize
 
